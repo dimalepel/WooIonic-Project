@@ -4,6 +4,7 @@ import { Storage } from '@ionic/storage';
 import * as WC from 'woocommerce-api';
 //import { HomePage } from '../home/home';
 import { MenuPage } from '../menu/menu';
+import { PayPal, PayPalPayment, PayPalConfiguration } from '@ionic-native/paypal';
 
 @Component({
   selector: 'page-checkout',
@@ -18,7 +19,7 @@ export class CheckoutPage {
   billing_shipping_same: boolean;
   userInfo: any;
 
-  constructor(public navCtrl: NavController, public navParams: NavParams, public storage: Storage, public alertCtrl: AlertController) {
+  constructor(public navCtrl: NavController, public navParams: NavParams, public storage: Storage, public alertCtrl: AlertController, private payPal: PayPal) {
     this.newOrder = {};
     this.newOrder.billing_address = {};
     this.newOrder.shipping_address = {};
