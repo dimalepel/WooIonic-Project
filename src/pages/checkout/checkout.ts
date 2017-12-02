@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { NavController, NavParams, AlertController } from 'ionic-angular';
 import { Storage } from '@ionic/storage';
 import * as WC from 'woocommerce-api';
-//import { HomePage } from '../home/home';
+import { HomePage } from '../home/home';
 import { MenuPage } from '../menu/menu';
 import { PayPal, PayPalPayment, PayPalConfiguration } from '@ionic-native/paypal';
 
@@ -93,46 +93,109 @@ export class CheckoutPage {
     
     
         if(paymentData.method_id == "paypal"){
-          //TODO
-        } else {
-    
-          this.storage.get("cart").then( (cart) => {
-    
-            cart.forEach( (element, index) => {
-              orderItems.push({
-                product_id: element.product.id,
-                quantity: element.qty
-              });
+          //PayPal
+          this.payPal.init({
+            PayPalEnvironmentProduction: 'YOUR_PRODUCTION_CLIENT_ID',
+            PayPalEnvironmentSandbox: 'AeKINgr1NVcIooAlzKRp3caem823xqL630HDXbgsMUHRiiyErPpdmKbIN6a4d5K7K9noptbBxzdzliTs'
+          }).then(() => {
+            // Environments: PayPalEnvironmentNoNetwork, PayPalEnvironmentSandbox, PayPalEnvironmentProduction
+            this.payPal.prepareToRender('PayPalEnvironmentSandbox', new PayPalConfiguration({
+              // Only needed if you get an "Internal Service Error" after PayPal login!
+              //payPalShippingAddressOption: 2 // PayPalShippingAddressOptionPayPal
+            })).then(() => {
+
+              this.storage.get("cart").then((cart) => {
+
+            let total = 0.00;
+            cart.forEach((element, index) => {
+              orderItems.push({ product_id: element.product.id, quantity: element.qty });
+              total = total + (element.product.price * element.qty);
             });
-    
-            data.line_items = orderItems;
-    
-            let orderData: any = {};
-    
-            orderData.order = data;
-    
-            this.WooCommerce.postAsync("orders", orderData).then( (data) => {
-    
-              let response = (JSON.parse(data.body).order);
-    
-              this.alertCtrl.create({
-                title: "Order Placed Successfully",
-                message: "Your order has been placed successfully. Your order number is " + response.order_number,
-                buttons: [{
-                  text: "OK",
-                  handler: () => {
-                    this.navCtrl.setRoot(MenuPage);
-                  }
-                }]
-              }).present();
-    
+
+            let payment = new PayPalPayment(total.toString(), 'USD', 'Description', 'sale');
+            this.payPal.renderSinglePaymentUI(payment).then((response) => {
+              // Successfully paid
+              alert(JSON.stringify(response));
+
+
+              data.line_items = orderItems;
+              //console.log(data);
+              let orderData: any = {};
+
+              orderData.order = data;
+
+              this.WooCommerce.postAsync('orders', orderData).then((data) => {
+                alert("Order placed successfully!");
+
+                let response = (JSON.parse(data.body).order);
+
+                this.alertCtrl.create({
+                  title: "Order Placed Successfully",
+                  message: "Your order has been placed successfully. Your order number is " + response.order_number,
+                  buttons: [{
+                    text: "OK",
+                    handler: () => {
+                      this.navCtrl.setRoot(HomePage);
+                    }
+                  }]
+                }).present();
+              })
+
             })
-    
-          })
-    
-        }
-    
-    
-      }
-    
+
+          }, () => {
+            // Error or render dialog closed without being successful
+          });
+        }, () => {
+          // Error in configuration
+        });
+      }, () => {
+        // Error in initialization, maybe PayPal isn't supported or something else
+      });
+
+
+
+
+
+    } else {
+
+      this.storage.get("cart").then((cart) => {
+
+        cart.forEach((element, index) => {
+          orderItems.push({
+            product_id: element.product.id,
+            quantity: element.qty
+          });
+        });
+
+        data.line_items = orderItems;
+
+        let orderData: any = {};
+
+        orderData.order = data;
+
+        this.WooCommerce.postAsync("orders", orderData).then((data) => {
+
+          let response = (JSON.parse(data.body).order);
+
+          this.alertCtrl.create({
+            title: "Order Placed Successfully",
+            message: "Your order has been placed successfully. Your order number is " + response.order_number,
+            buttons: [{
+              text: "OK",
+              handler: () => {
+                this.navCtrl.setRoot(HomePage);
+              }
+            }]
+          }).present();
+
+        })
+
+      })
+
     }
+
+
+  }
+
+}
