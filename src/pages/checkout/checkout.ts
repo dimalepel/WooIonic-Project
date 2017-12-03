@@ -115,7 +115,7 @@ export class CheckoutPage {
             let payment = new PayPalPayment(total.toString(), 'USD', 'Description', 'sale');
             this.payPal.renderSinglePaymentUI(payment).then((response) => {
               // Successfully paid
-              alert(JSON.stringify(response));
+              //alert(JSON.stringify(response));
 
 
               data.line_items = orderItems;
@@ -125,7 +125,7 @@ export class CheckoutPage {
               orderData.order = data;
 
               this.WooCommerce.postAsync('orders', orderData).then((data) => {
-                alert("Order placed successfully!");
+                //alert("Order placed successfully!");
 
                 let response = (JSON.parse(data.body).order);
 
@@ -135,7 +135,7 @@ export class CheckoutPage {
                   buttons: [{
                     text: "OK",
                     handler: () => {
-                      this.navCtrl.setRoot(HomePage);
+                      this.navCtrl.setRoot(MenuPage);
                     }
                   }]
                 }).present();
@@ -184,7 +184,7 @@ export class CheckoutPage {
             buttons: [{
               text: "OK",
               handler: () => {
-                this.navCtrl.setRoot(HomePage);
+                this.navCtrl.setRoot(MenuPage);
               }
             }]
           }).present();
