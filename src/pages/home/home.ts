@@ -1,6 +1,7 @@
 import { Component, ViewChild } from '@angular/core';
 import { NavController, Slides, ToastController } from 'ionic-angular';
 import { ProductDetailsPage } from '../product-details/product-details';
+import { ProductsByCategory } from '../products-by-category/products-by-category'
 
 import * as WC from 'woocommerce-api';
 
@@ -12,13 +13,14 @@ export class HomePage {
 
   WooCommerce: any;
   products: any[];
+  categories: any[];
+ // @ViewChild('content') childNavCtrl: NavController;
   moreProducts: any[];
   page: number;
-
   @ViewChild('productSlides') productSlides: Slides;
 
   constructor(public navCtrl: NavController, public toastCtrl: ToastController) {
-
+    this.categories = [];
     this.page = 2;
 
     this.WooCommerce = WC({
@@ -26,6 +28,21 @@ export class HomePage {
       consumerKey: "ck_6b37527e8b31641dfc6656ab15c09d741f5ea545",
       consumerSecret: "cs_155ff9d96ee95b3258324a644deba49a363ba8e8"
     });
+
+    this.WooCommerce.getAsync("products/categories").then((data) => {
+      console.log(JSON.parse(data.body).product_categories);
+
+      let temp: any[] = JSON.parse(data.body).product_categories;
+
+      for( let i = 0; i < temp.length; i ++){
+        if(temp[i].parent == 0){          
+          this.categories.push(temp[i]);
+        }
+      }
+
+    }, (err)=> {
+      console.log(err)
+    })
 
     this.loadMoreProducts(null);
 
@@ -36,6 +53,12 @@ export class HomePage {
       console.log(err)
     })
 
+  }
+
+  openCategoryPage(category){
+    
+      this.navCtrl.setRoot(ProductsByCategory, { "category":  category});
+  
   }
 
   ionViewDidLoad(){
